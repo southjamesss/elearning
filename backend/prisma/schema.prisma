@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  name        String
+  email       String       @unique
+  password    String
+  role        String       @default("user")
+  attendances Attendance[]
+}
+
+model Video {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  url         String
+  createdAt   DateTime @default(now())
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  date      DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date], name: "userId_date_unique")
+}
+
+model Exercise {
+  id             Int        @id @default(autoincrement())
+  title          String
+  description    String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  questionDetail String?
+  questions      Question[]
+}
+
+model Question {
+  id            Int      @id @default(autoincrement())
+  question      String
+  correctAnswer Int?
+  exerciseId    Int
+  options       Option[]
+  exercise      Exercise @relation(fields: [exerciseId], references: [id])
+
+  @@index([exerciseId], map: "Question_exerciseId_fkey")
+}
+
+model Option {
+  id         Int      @id @default(autoincrement())
+  option     String
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@index([questionId], map: "Option_questionId_fkey")
+}
