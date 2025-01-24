@@ -51,10 +51,10 @@ const Navbar = () => {
 
                 <div className="space-x-8 text-lg hidden md:flex">
                     <Link
-                        to="/admin/articles"
+                        to="/admin/score"
                         className="text-white hover:text-indigo-300 font-medium transition-colors duration-300"
                     >
-                        จัดการบทความ
+                        คะแนนแบบฝึกหัด
                     </Link>
                     <button
                         onClick={openAttendancePopup}

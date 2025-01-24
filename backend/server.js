@@ -688,6 +688,23 @@ app.post("/api/scores", async (req, res) => {
   }
 });
 
+//ดูคะแคน
+app.get("/api/scores", async (req, res) => {
+  try {
+    const scores = await prisma.score.findMany({
+      include: {
+        user: { select: { name: true } }, // ดึงชื่อผู้ใช้งาน
+        exercise: { select: { title: true } }, // ดึงชื่อแบบฝึกหัด
+      },
+      orderBy: { createdAt: "desc" }, // เรียงลำดับคะแนนจากล่าสุด
+    });
+    res.json(scores);
+  } catch (err) {
+    console.error("Error fetching scores:", err.message);
+    res.status(500).json({ error: "ไม่สามารถโหลดข้อมูลคะแนนได้" });
+  }
+});
+
 
 // Start the server
 app.listen(PORT, () => {

@@ -12,6 +12,7 @@ import AdminExercisesPage from "./components/AdminExercisesPage";
 import AdminUsersPage from "./components/AdminUsersPage";
 import EditExercisePage from "./components/EditExercisePage";
 import PlaygroundPage from "./components/PlaygroundPage";
+import ScoresPage from "./components/ScoresPage";
 
 const App = () => {
   return (
@@ -31,6 +32,7 @@ const App = () => {
         <Route path="/admin/users" element={<AdminUsersPage />} />
         <Route path="/admin/exercises/edit/:id" element={<EditExercisePage />} />
         <Route path="/playground" element={<PlaygroundPage />} />
+        <Route path="/admin/score" element={<ScoresPage />} />
       </Routes>
     </Router>
   );
