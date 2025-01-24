@@ -20,15 +20,18 @@ const ExercisesPage = () => {
     const fetchExercises = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`http://localhost:3000/api/exercises?category=${categoryId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const response = await axios.get(
+          `http://localhost:3000/api/exercises?category=${categoryId}`,
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          }
+        );
 
         setExercises(Array.isArray(response.data) ? response.data : [response.data]);
         setError("");
       } catch (err) {
         console.error("Error fetching exercises:", err);
-        setError("ไม่สามารถโหลดข้อมูลข้อสอบได้");
+        setError("ไม่สามารถโหลดข้อมูลแบบฝึกหัดได้");
       } finally {
         setLoading(false);
       }
@@ -38,10 +41,15 @@ const ExercisesPage = () => {
   }, [categoryId]);
 
   const handleSelectAnswer = (questionId, answerIndex) => {
-    setSelectedAnswers({ ...selectedAnswers, [questionId]: answerIndex });
+    setSelectedAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [questionId]: answerIndex,
+    }));
   };
 
   const handleSubmit = () => {
+    if (!selectedExercise) return;
+
     let scoreCount = 0;
     selectedExercise.questions.forEach((question) => {
       if (selectedAnswers[question.id] === question.correctAnswer) {
@@ -54,9 +62,12 @@ const ExercisesPage = () => {
   const handleExerciseSelection = async (exerciseId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:3000/api/exercises/${exerciseId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const response = await axios.get(
+        `http://localhost:3000/api/exercises/${exerciseId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
       setSelectedExercise(response.data);
       setError("");
       setSelectedAnswers({});
@@ -69,11 +80,38 @@ const ExercisesPage = () => {
     }
   };
 
-  // 🆕 ฟังก์ชันสำหรับกลับไปเลือกแบบฝึกหัดใหม่
   const handleBackToSelection = () => {
     setSelectedExercise(null);
     setSelectedAnswers({});
     setScore(null);
+  };
+
+  const handleSaveScore = async () => {
+    const userId = localStorage.getItem("userId");
+    console.log("User ID from localStorage:", userId);
+    if (!userId || !selectedExercise || score === null) {
+      console.error("ข้อมูลไม่ครบถ้วน:", { userId, selectedExercise, score });
+      alert("ไม่สามารถบันทึกคะแนนได้: ข้อมูลไม่ครบถ้วน");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/scores",
+        {
+          userId: parseInt(userId, 10),
+          exerciseId: selectedExercise.id,
+          score,
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      alert("บันทึกคะแนนสำเร็จ");
+    } catch (err) {
+      console.error("Error saving score:", err.response?.data || err);
+      alert(`เกิดข้อผิดพลาดในการบันทึกคะแนน: ${err.response?.data?.error || err.message}`);
+    }
   };
 
   return (
@@ -144,7 +182,6 @@ const ExercisesPage = () => {
               ส่งคำตอบ
             </button>
 
-            {/* 🆕 ปุ่มกลับไปเลือกแบบฝึกหัดใหม่ */}
             <button
               onClick={handleBackToSelection}
               className="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-300"
@@ -156,6 +193,12 @@ const ExercisesPage = () => {
           {score !== null && (
             <div className="mt-6 text-xl font-bold text-indigo-700">
               คะแนนของคุณ: {score}
+              <button
+                onClick={handleSaveScore}
+                className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300"
+              >
+                บันทึกคะแนน
+              </button>
             </div>
           )}
         </div>

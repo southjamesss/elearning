@@ -11,26 +11,31 @@ const LoginForm = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     if (!email || !password) {
       setError("กรุณากรอกอีเมลและรหัสผ่าน");
       return;
     }
-
+  
     try {
       setError("");
       setLoading(true);
-
+  
       const response = await axios.post("http://localhost:3000/login", {
         email,
         password,
       });
-
-      const { accessToken, refreshToken, role } = response.data;
-
+  
+      const { accessToken, refreshToken, role, userId } = response.data;
+  
+      console.log("Response data:", response.data); // ตรวจสอบ response จากเซิร์ฟเวอร์
+  
       localStorage.setItem("token", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
-
+      localStorage.setItem("userId", userId); // เพิ่มการเก็บ userId
+  
+      console.log("Stored userId:", localStorage.getItem("userId")); // ตรวจสอบว่า userId ถูกเก็บใน localStorage หรือไม่
+  
       if (role === "admin") {
         navigate("/admin");
       } else {
@@ -38,6 +43,7 @@ const LoginForm = () => {
       }
     } catch (err) {
       setError(err.response?.data?.error || "เข้าสู่ระบบล้มเหลว");
+      console.error("Login error:", err.response?.data || err); // เพิ่ม log เมื่อเกิดข้อผิดพลาด
     } finally {
       setLoading(false);
     }
@@ -90,11 +96,10 @@ const LoginForm = () => {
 
         <button
           type="submit"
-          className={`w-full py-3 text-white rounded-md focus:outline-none ${
-            loading
+          className={`w-full py-3 text-white rounded-md focus:outline-none ${loading
               ? "bg-indigo-400 cursor-not-allowed"
               : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
+            }`}
           disabled={loading}
         >
           {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}

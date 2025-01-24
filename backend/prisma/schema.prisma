@@ -14,6 +14,7 @@ model User {
   password    String
   role        String       @default("user")
   attendances Attendance[]
+  scores      Score[]
 }
 
 model Video {
@@ -42,6 +43,7 @@ model Exercise {
   updatedAt      DateTime   @updatedAt
   questionDetail String?
   questions      Question[]
+  scores         Score[]
 }
 
 model Question {
@@ -62,4 +64,18 @@ model Option {
   question   Question @relation(fields: [questionId], references: [id])
 
   @@index([questionId], map: "Option_questionId_fkey")
+}
+
+model Score {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  exerciseId Int
+  score      Int
+  attempt    Int      @default(1)
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exerciseId, attempt], name: "unique_user_exercise_attempt")
 }

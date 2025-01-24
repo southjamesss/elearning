@@ -108,23 +108,61 @@ app.post('/register', async (req, res) => {
 // Login Route
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
+
   try {
-    console.log('Login attempt:', email); // Log the email to see if the request is received
+    console.log('Login attempt with email:', email);
+
+    // ตรวจสอบว่า email และ password ถูกส่งมาครบหรือไม่
+    if (!email || !password) {
+      console.log("Missing email or password");
+      return res.status(400).json({ error: "กรุณากรอกอีเมลและรหัสผ่าน" });
+    }
+
+    // ค้นหา user ในฐานข้อมูล
     const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      console.log('Invalid email or password'); // Log invalid credentials
+    if (!user) {
+      console.log("User not found with email:", email);
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const accessToken = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "1d" });
-    const refreshToken = jwt.sign({ userId: user.id, role: user.role }, JWT_REFRESH_SECRET, { expiresIn: "7d" });
+    // ตรวจสอบความถูกต้องของ password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log("Invalid password for email:", email);
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
 
-    console.log('Login successful'); // Log success
-    res.json({ accessToken, refreshToken, role: user.role });
+    // ตรวจสอบว่า role ถูกกำหนดในฐานข้อมูล
+    if (!user.role) {
+      console.log(`User role not defined for userId: ${user.id}`);
+      return res.status(400).json({ error: "User role not defined" });
+    }
+
+    // สร้าง JWT Token
+    const accessToken = jwt.sign(
+      { userId: user.id, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+    const refreshToken = jwt.sign(
+      { userId: user.id, role: user.role },
+      JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    console.log('Login successful for userId:', user.id);
+
+    // ส่ง userId, accessToken, refreshToken และ role กลับไปยังไคลเอนต์
+    res.json({
+      userId: user.id, // user.id จะมีค่าหลังจากผ่าน validation ข้างต้น
+      accessToken,
+      refreshToken,
+      role: user.role,
+    });
   } catch (err) {
     console.error("Error during login:", err);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการเข้าสู่ระบบ" });
   }
 });
 
@@ -604,6 +642,50 @@ app.post("/run-code", (req, res) => {
     }
     res.json({ output: stdout });
   });
+});
+
+
+// POST /api/scores
+app.post("/api/scores", async (req, res) => {
+  console.log("Request body received:", req.body);
+
+  const { userId, exerciseId, score } = req.body;
+
+  if (!Number.isInteger(userId) || !Number.isInteger(exerciseId) || score == null) {
+    console.error("Invalid or missing data:", { userId, exerciseId, score });
+    return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วนหรือรูปแบบข้อมูลไม่ถูกต้อง" });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const exercise = await prisma.exercise.findUnique({ where: { id: exerciseId } });
+
+    if (!user) {
+      return res.status(404).json({ error: "ไม่พบผู้ใช้งานในระบบ" });
+    }
+
+    if (!exercise) {
+      return res.status(404).json({ error: "ไม่พบแบบฝึกหัดในระบบ" });
+    }
+
+    const lastAttempt = await prisma.score.findMany({
+      where: { userId, exerciseId },
+      orderBy: { attempt: "desc" },
+      take: 1,
+    });
+
+    const newAttempt = lastAttempt.length > 0 ? lastAttempt[0].attempt + 1 : 1;
+
+    const newScore = await prisma.score.create({
+      data: { userId, exerciseId, score, attempt: newAttempt },
+    });
+
+    console.log("New score saved successfully:", newScore);
+    res.status(201).json({ message: "บันทึกคะแนนสำเร็จ", newScore });
+  } catch (err) {
+    console.error("Error saving score:", err.message);
+    res.status(500).json({ error: "ไม่สามารถบันทึกคะแนนได้", details: err.message });
+  }
 });
 
 
