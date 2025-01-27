@@ -210,6 +210,21 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
   }
 });
 
+//ล้างเช็คชื่อ
+app.delete("/api/attendance", authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "You are not authorized to delete attendance data" });
+    }
+
+    await prisma.attendance.deleteMany(); // ลบข้อมูลทั้งหมดในตาราง attendance
+    res.status(200).json({ message: "ล้างข้อมูลสำเร็จ" });
+  } catch (error) {
+    console.error("Error clearing attendance data:", error);
+    res.status(500).json({ error: "ไม่สามารถล้างข้อมูลได้" });
+  }
+});
+
 
 // เพิ่มวิดีโอ
 app.post('/admin/videos', authenticateToken, async (req, res) => {
