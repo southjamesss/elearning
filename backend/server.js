@@ -620,6 +620,7 @@ app.post("/send-line-notify", async (req, res) => {
 });
 
 
+// Endpoint สำหรับรันโค้ด
 app.post("/run-code", (req, res) => {
   const { code, language } = req.body;
 
@@ -627,12 +628,13 @@ app.post("/run-code", (req, res) => {
     return res.status(400).json({ error: "Code and language are required." });
   }
 
+  // สร้างไฟล์ชั่วคราวสำหรับรันโค้ด
   const tempFilePath = path.join(__dirname, `temp.${language}`);
   fs.writeFileSync(tempFilePath, code);
 
   let command;
 
-  // กำหนดคำสั่งตามภาษา
+  // กำหนดคำสั่งรันตามภาษา
   switch (language) {
     case "js":
       command = `node ${tempFilePath}`;
@@ -641,7 +643,7 @@ app.post("/run-code", (req, res) => {
       command = `python ${tempFilePath}`;
       break;
     case "java":
-      const className = "Main"; // ชื่อคลาสต้องตรงกับโค้ด
+      const className = "Main"; // ชื่อคลาสในโค้ด Java ต้องเป็น Main
       fs.writeFileSync(path.join(__dirname, `${className}.java`), code);
       command = `javac ${className}.java && java ${className}`;
       break;
@@ -650,7 +652,13 @@ app.post("/run-code", (req, res) => {
   }
 
   exec(command, (error, stdout, stderr) => {
-    fs.unlinkSync(tempFilePath); // ลบไฟล์หลังรันโค้ดเสร็จ
+    // ลบไฟล์หลังรันโค้ดเสร็จ
+    fs.unlinkSync(tempFilePath);
+
+    if (language === "java") {
+      const classFilePath = path.join(__dirname, "Main.class");
+      if (fs.existsSync(classFilePath)) fs.unlinkSync(classFilePath);
+    }
 
     if (error) {
       return res.status(400).json({ error: stderr || error.message });

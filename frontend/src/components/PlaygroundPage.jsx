@@ -9,6 +9,11 @@ const PlaygroundPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRunCode = async () => {
+    if (!code.trim()) {
+      setOutput("กรุณาใส่โค้ดก่อนรัน");
+      return;
+    }
+  
     setIsLoading(true);
     setOutput("");
     try {
@@ -17,12 +22,12 @@ const PlaygroundPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language }),
       });
-
+  
       const data = await response.json();
       if (response.ok) {
-        setOutput(data.output);
+        setOutput(data.output || "รันสำเร็จ แต่ไม่มีผลลัพธ์");
       } else {
-        setOutput(data.error || "Unknown error occurred");
+        setOutput(`Error: ${data.error || "ไม่ทราบข้อผิดพลาด"}`);
       }
     } catch (error) {
       setOutput("Error: " + error.message);

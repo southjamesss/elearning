@@ -108,6 +108,7 @@ const ExercisesPage = () => {
         }
       );
       alert("บันทึกคะแนนสำเร็จ");
+      handleBackToSelection();
     } catch (err) {
       console.error("Error saving score:", err.response?.data || err);
       alert(`เกิดข้อผิดพลาดในการบันทึกคะแนน: ${err.response?.data?.error || err.message}`);
@@ -118,12 +119,20 @@ const ExercisesPage = () => {
     <div className="container mx-auto p-8 bg-gray-50 min-h-screen rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-extrabold text-blue-700">แบบฝึกหัด React</h1>
-        <button
-          onClick={() => navigate(-1)}
-          className="px-5 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
-        >
-          ย้อนกลับ
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={handleBackToSelection}
+            className="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-300"
+          >
+            เลือกแบบฝึกหัดใหม่
+          </button>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-5 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
+          >
+            ย้อนกลับ
+          </button>
+        </div>
       </div>
 
       {loading && <div className="text-center text-lg font-medium">กำลังโหลดข้อมูล...</div>}
@@ -182,12 +191,7 @@ const ExercisesPage = () => {
               ส่งคำตอบ
             </button>
 
-            <button
-              onClick={handleBackToSelection}
-              className="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-300"
-            >
-              กลับไปเลือกแบบฝึกหัดใหม่
-            </button>
+
           </div>
 
           {score !== null && (
