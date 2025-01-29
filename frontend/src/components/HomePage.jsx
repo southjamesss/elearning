@@ -31,34 +31,34 @@ const HomePage = () => {
 
   const handleSendChat = async () => {
     if (!message.trim()) {
-        alert("กรุณากรอกข้อความก่อนส่ง");
-        return;
+      alert("กรุณากรอกข้อความก่อนส่ง");
+      return;
     }
 
     setIsLoading(true);
 
     try {
-        const response = await fetch("http://localhost:3000/send-line-notify", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ message }), // ส่งข้อความ
-        });
+      const response = await fetch("http://localhost:3000/send-line-notify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }), // ส่งข้อความ
+      });
 
-        if (response.ok) {
-            alert("ส่งข้อความสำเร็จ!");
-            setMessage("");
-        } else {
-            const errorData = await response.json();
-            alert("การส่งข้อความล้มเหลว: " + errorData.error);
-        }
+      if (response.ok) {
+        alert("ส่งข้อความสำเร็จ!");
+        setMessage("");
+      } else {
+        const errorData = await response.json();
+        alert("การส่งข้อความล้มเหลว: " + errorData.error);
+      }
     } catch (error) {
-        alert("เกิดข้อผิดพลาดในการส่งข้อความ");
+      alert("เกิดข้อผิดพลาดในการส่งข้อความ");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
+  };
 
   return (
     <div className="relative min-h-screen flex flex-col">
@@ -157,12 +157,20 @@ const HomePage = () => {
       {showChat && (
         <div className="fixed bottom-20 right-6 bg-white text-black p-6 rounded-lg shadow-xl w-72 z-50">
           <h3 className="text-lg font-bold mb-4 text-gray-800">รายงานการเรียนรู้</h3>
+
           <textarea
             className="w-full h-24 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="พิมพ์ชื่อและตามด้วยสิ่งที่คุณเรียนรู้วันนี้..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !isLoading) {
+                e.preventDefault(); // ป้องกันขึ้นบรรทัดใหม่
+                handleSendChat(); // ส่งข้อความ
+              }
+            }}
           ></textarea>
+
           <button
             onClick={handleSendChat}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"

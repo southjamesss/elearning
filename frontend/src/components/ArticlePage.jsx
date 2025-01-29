@@ -30,22 +30,6 @@ const ArticlePage = () => {
           `
         },
   
-        // บทที่ 2: JSX และ Component
-        {
-          sectionTitle: "บทที่ 2: JSX และ Component",
-          content: `
-            JSX ช่วยให้เขียน HTML ใน JavaScript ได้สะดวกขึ้น
-  
-            ตัวอย่าง Functional Component:
-            function Welcome(props) {
-              return <h1>สวัสดี {props.name}</h1>;
-            }
-            
-            ประเภทของ Component:
-            - Functional Component
-            - Class Component
-          `
-        },
   
         // บทที่ 3: Props และ State
         {
