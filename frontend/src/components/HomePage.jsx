@@ -1,23 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CheckIn from "./CheckIn";
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [checkedIn, setCheckedIn] = useState(false); // สถานะการเช็คอิน
-  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false); // สถานะการแสดง Popup
-  const [showChat, setShowChat] = useState(false); // สถานะการแสดงปุ่มลอย
-  const [message, setMessage] = useState(""); // เก็บข้อความรายงาน
-  const [isLoading, setIsLoading] = useState(false); // สถานะกำลังส่งข้อความ
+  const [checkedIn, setCheckedIn] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleStartLearning = () => {
-    navigate("/videos");
-  };
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        if (showChat) setShowChat(false);
+        if (showPrivacyPolicy) setShowPrivacyPolicy(false);
+      }
+    };
 
-  const handleJoinUs = () => {
-    navigate("/categories");
-  };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showChat, showPrivacyPolicy]);
 
+  const handleStartLearning = () => navigate("/videos");
+  const handleJoinUs = () => navigate("/categories");
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
@@ -36,14 +44,13 @@ const HomePage = () => {
     }
 
     setIsLoading(true);
-
     try {
       const response = await fetch("http://localhost:3000/send-line-notify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message }), // ส่งข้อความ
+        body: JSON.stringify({ message }),
       });
 
       if (response.ok) {
@@ -62,18 +69,11 @@ const HomePage = () => {
 
   return (
     <div className="relative min-h-screen flex flex-col">
-      {/* วิดีโอพื้นหลัง */}
-      <video
-        autoPlay
-        loop
-        muted
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      >
+      <video autoPlay loop muted className="absolute inset-0 w-full h-full object-cover z-0">
         <source src="/1.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
-      {/* เนื้อหา */}
       <div className="relative z-10 text-white bg-black bg-opacity-50 min-h-screen flex flex-col">
         <header className="bg-teal-700 py-6 shadow-lg bg-opacity-80">
           <div className="container mx-auto flex justify-between items-center">
@@ -83,10 +83,7 @@ const HomePage = () => {
             </div>
             <div className="flex space-x-4">
               <CheckIn setCheckedIn={setCheckedIn} />
-              <button
-                onClick={handleLogout}
-                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full"
-              >
+              <button onClick={handleLogout} className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full">
                 ออกจากระบบ
               </button>
             </div>
@@ -95,23 +92,13 @@ const HomePage = () => {
 
         <main className="flex-grow flex items-center justify-center">
           <div className="container mx-auto text-center p-8">
-            <h2 className="text-2xl font-semibold mb-4">
-              ค้นพบ เรียนรู้ และเชี่ยวชาญ React
-            </h2>
-            <p className="text-lg mb-6">
-              เริ่มต้นการเรียนรู้ของคุณกับบทเรียนที่มีโครงสร้างดี หมวดหมู่ และโครงการที่เหมาะสำหรับผู้เริ่มต้นและมืออาชีพ
-            </p>
+            <h2 className="text-2xl font-semibold mb-4">ค้นพบ เรียนรู้ และเชี่ยวชาญ React</h2>
+            <p className="text-lg mb-6">เริ่มต้นการเรียนรู้ของคุณกับบทเรียนที่มีโครงสร้างดี</p>
             <div className="space-x-4">
-              <button
-                onClick={handleStartLearning}
-                className="px-6 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-full"
-              >
+              <button onClick={handleStartLearning} className="px-6 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-full">
                 เริ่มเรียน
               </button>
-              <button
-                onClick={handleJoinUs}
-                className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-full"
-              >
+              <button onClick={handleJoinUs} className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-full">
                 เข้าร่วมเรา
               </button>
             </div>
@@ -135,26 +122,16 @@ const HomePage = () => {
         </footer>
       </div>
 
-      {/* ปุ่มลอย */}
       <button
         onClick={toggleChat}
         className="fixed bottom-6 right-6 bg-opacity-80 from-purple-500 via-pink-500 to-red-500 text-white p-3 rounded-full shadow-lg hover:from-purple-600 hover:via-pink-600 hover:to-red-600 transition-transform transform hover:scale-105 z-50 flex items-center justify-center border border-gray-300"
       >
-        {showChat ? (
-          <>
-            <span className="material-icons text-medium">close</span>
-            <span className="ml-2 text-sm font-medium">ปิด</span>
-          </>
-        ) : (
-          <>
-            <span className="material-icons text-lg">📝</span>
-            <span className="ml-2 text-sm font-medium">แชท</span>
-          </>
-        )}
+        {showChat ? <span className="material-icons">close</span> : <span className="material-icons">📝</span>}
+        <span className="ml-2 text-sm font-medium">{showChat ? "ปิด" : "แชท"}</span>
       </button>
 
-      {/* รายงานการเรียนรู้ */}
-      {showChat && (
+         {/* รายงานการเรียนรู้ */}
+         {showChat && (
         <div className="fixed bottom-20 right-6 bg-white text-black p-6 rounded-lg shadow-xl w-72 z-50">
           <h3 className="text-lg font-bold mb-4 text-gray-800">รายงานการเรียนรู้</h3>
 
@@ -170,19 +147,14 @@ const HomePage = () => {
               }
             }}
           ></textarea>
-
-          <button
-            onClick={handleSendChat}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
-            disabled={isLoading}
-          >
-            {isLoading ? "กำลังส่ง..." : "ส่งรายงานผ่านไลน์"}
+          <button onClick={handleSendChat} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600" disabled={isLoading}>
+            {isLoading ? "กำลังส่ง..." : "ส่งรายงาน"}
           </button>
         </div>
       )}
 
-      {/* Popup นโยบายความเป็นส่วนตัว */}
-      {showPrivacyPolicy && (
+       {/* Popup นโยบายความเป็นส่วนตัว */}
+       {showPrivacyPolicy && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="relative bg-white p-8 w-11/12 md:w-2/3 lg:w-1/2 rounded-lg shadow-lg overflow-y-auto max-h-[80vh]">
             {/* ปุ่มปิด */}

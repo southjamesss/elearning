@@ -140,7 +140,7 @@ const ExercisesPage = () => {
 
       {selectedExercise === null ? (
         <div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">เลือกแบบฝึกหัดที่ต้องการทำ:</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">เลือกแบบฝึกหัดที่ต้องการทำ</h2>
           {exercises.length === 0 ? (
             <div className="text-center text-gray-500">ยังไม่มีแบบฝึกหัด</div>
           ) : (

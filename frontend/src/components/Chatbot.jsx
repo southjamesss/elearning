@@ -27,7 +27,7 @@ const Chatbot = () => {
                 setMessages((prev) => [...prev, botMessage]);
             } catch (error) {
                 console.error("Error communicating with Ollama:", error);
-                setMessages((prev) => [...prev, { sender: "bot", text: "ขอโทษค่ะ ฉันไม่สามารถตอบได้ตอนนี้ 😢" }]);
+                setMessages((prev) => [...prev, { sender: "bot", text: "ขอโทษครับ ฉันไม่สามารถตอบได้ตอนนี้ 😢" }]);
             } finally {
                 setLoading(false); // โหลดเสร็จ
             }
