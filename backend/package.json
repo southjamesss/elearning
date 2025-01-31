@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,12 +14,16 @@
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@prisma/client": "^6.2.1",
     "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.3",
+    "child_process": "^1.0.2",
     "cors": "^2.8.5",
+    "dockerode": "^4.0.4",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
+    "nodemon": "^3.1.9",
     "prisma": "^6.2.1"
   }
 }
