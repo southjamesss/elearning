@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 const PlaygroundPage = () => {
   const navigate = useNavigate();
   const [code, setCode] = useState("");
-  const [language, setLanguage] = useState("javascript"); // ตั้งค่าเริ่มต้นเป็น JavaScript
+  const [language, setLanguage] = useState("javascript"); // ค่าเริ่มต้นเป็น JavaScript
   const [output, setOutput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -21,36 +21,55 @@ const PlaygroundPage = () => {
   ];
 
   const handleRunCode = async () => {
-    if (!code.trim()) {
-      setOutput("❌ กรุณาใส่โค้ดก่อนรัน");
-      return;
+  if (!code.trim()) {
+    setOutput("❌ กรุณาใส่โค้ดก่อนรัน");
+    return;
+  }
+
+  setIsLoading(true);
+  setOutput("กำลังประมวลผล...");
+
+  try {
+    const response = await fetch("http://localhost:11434/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "llama3",
+        prompt: `รันโค้ดต่อไปนี้แล้วแสดงผลลัพธ์ที่ได้โดยตรง (อย่าอธิบาย):\n\n\`\`\`${language}\n${code}\n\`\`\`\n\nแสดงผลลัพธ์เป็นข้อความเท่านั้น`,
+      }),
+    });
+
+    if (!response.body) {
+      throw new Error("❗ ไม่มีข้อมูลจาก API");
     }
 
-    setIsLoading(true);
-    setOutput("");
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let result = "";
 
-    try {
-      const response = await fetch("http://localhost:3000/run-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setOutput(data.output || "✅ รันสำเร็จ แต่ไม่มีผลลัพธ์");
-      } else {
-        setOutput(`⚠️ Error: ${data.error || "เกิดข้อผิดพลาด"}`);
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      try {
+        const json = JSON.parse(chunk);
+        result += json.response || "";
+        setOutput(result); // อัปเดตผลลัพธ์แบบเรียลไทม์
+      } catch (error) {
+        console.error("JSON Parsing Error:", error);
       }
-    } catch (error) {
-      setOutput(`❗ Error: ${error.message}`);
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+    setOutput(result || "✅ AI ประมวลผลสำเร็จ แต่ไม่มีผลลัพธ์");
+  } catch (error) {
+    setOutput(`❗ Error: ${error.message}`);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-100 p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">ทดลองเขียนโค้ด</h1>
         <button
@@ -61,7 +80,6 @@ const PlaygroundPage = () => {
         </button>
       </div>
 
-      {/* เลือกภาษา */}
       <div className="mb-4">
         <label className="block font-medium mb-2">เลือกภาษา:</label>
         <select
@@ -77,7 +95,6 @@ const PlaygroundPage = () => {
         </select>
       </div>
 
-      {/* กล่องใส่โค้ด */}
       <textarea
         className="w-full h-60 p-4 border rounded mb-4 font-mono"
         placeholder="พิมพ์โค้ดของคุณที่นี่..."
@@ -85,7 +102,6 @@ const PlaygroundPage = () => {
         onChange={(e) => setCode(e.target.value)}
       ></textarea>
 
-      {/* ปุ่มรันโค้ด */}
       <button
         onClick={handleRunCode}
         className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -94,10 +110,9 @@ const PlaygroundPage = () => {
         {isLoading ? "🚀 กำลังรัน..." : "▶ รันโค้ด"}
       </button>
 
-      {/* แสดงผลลัพธ์ */}
-      <div className="mt-6 p-4 bg-gray-100 border rounded">
+      <div className="mt-6 p-4 bg-white border rounded shadow-md">
         <h2 className="text-lg font-semibold">ผลลัพธ์:</h2>
-        <pre className="whitespace-pre-wrap">{output}</pre>
+        <pre className="whitespace-pre-wrap bg-gray-50 p-3 rounded border">{output}</pre>
       </div>
     </div>
   );

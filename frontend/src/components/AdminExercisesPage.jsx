@@ -11,10 +11,10 @@ const AdminExercisesPage = () => {
   ]);
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);  // เพื่อจัดการสถานะการโหลด
+  const [loading, setLoading] = useState(false);  //เพื่อจัดการสถานะการโหลด
   const navigate = useNavigate();
 
-  // ฟังก์ชันดึงข้อมูลแบบฝึกหัด
+  //ฟังก์ชันดึงข้อมูลแบบฝึกหัด
   const fetchExercises = async () => {
     setLoading(true); // เริ่มต้นการโหลด
     try {
@@ -28,7 +28,7 @@ const AdminExercisesPage = () => {
       console.error("Error fetching exercises:", err);
       setError("ไม่สามารถโหลดข้อมูลแบบฝึกหัดได้");
     } finally {
-      setLoading(false);  // หยุดการโหลด
+      setLoading(false);  //หยุดการโหลด
     }
   };
 
@@ -63,7 +63,7 @@ const AdminExercisesPage = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
-        // การสร้างแบบฝึกหัดใหม่
+        //การสร้างแบบฝึกหัดใหม่
         await axios.post(
           "http://localhost:3000/admin/exercises",
           newExercise,
