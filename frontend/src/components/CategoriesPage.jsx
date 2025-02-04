@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Chatbot from "./Chatbot";
+import { Dialog } from "@headlessui/react";
 
 const CategoriesPage = () => {
   const navigate = useNavigate();
   const [showFAQ, setShowFAQ] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const categories = [
     { id: 1, name: "บทความเกี่ยวกับ React", description: "อ่านบทความและเนื้อหาที่เกี่ยวข้องกับ React", type: "article" },
@@ -24,17 +26,15 @@ const CategoriesPage = () => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         setShowFAQ(false);
+        setIsOpen(false);
       }
     };
 
-    if (showFAQ) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
-
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [showFAQ]);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-800">
@@ -57,13 +57,12 @@ const CategoriesPage = () => {
               <p className="mb-4">{category.description}</p>
               <button
                 onClick={() => handleNavigate(category)}
-                className={`px-4 py-2 ${
-                  category.type === "article"
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : category.type === "exercise"
+                className={`px-4 py-2 ${category.type === "article"
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : category.type === "exercise"
                     ? "bg-green-600 hover:bg-green-700"
                     : "bg-purple-600 hover:bg-purple-700"
-                } text-white rounded transition duration-200`}
+                  } text-white rounded transition duration-200`}
               >
                 {category.type === "article" ? "อ่านบทความ" : category.type === "exercise" ? "ทำแบบฝึกหัด" : "ทดลองโค้ด"}
               </button>
@@ -83,10 +82,62 @@ const CategoriesPage = () => {
             |{" "}
             <a href="/contact" className="hover:underline text-gray-400">
               ติดต่อ
-            </a>
+            </a>{" "}
+            |{" "}
+            {/* ปุ่มเปิด Modal */}
+            <button
+              className="hover:underline text-gray-400"
+              onClick={() => setIsOpen(true)}
+            >
+              นโยบายความเป็นส่วนตัว
+            </button>
           </p>
         </div>
       </footer>
+
+      {/* Modal นโยบายความเป็นส่วนตัว */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="relative bg-white p-8 w-11/12 md:w-2/3 lg:w-1/2 rounded-lg shadow-lg overflow-y-auto max-h-[80vh]">
+            {/* ปุ่มปิด */}
+            <button
+              onClick={() => setIsOpen(false)}
+              className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600"
+            >
+              ✕
+            </button>
+
+            {/* เนื้อหานโยบายความเป็นส่วนตัว */}
+            <h2 className="text-2xl font-bold mb-4">นโยบายความเป็นส่วนตัว</h2>
+            <p>เราที่ React Learning Hub ให้ความสำคัญกับความเป็นส่วนตัวของผู้ใช้บริการของเรา ข้อมูลส่วนบุคคลของคุณจะถูกเก็บและใช้งานตามข้อกำหนดดังนี้:</p>
+
+            <h3 className="text-lg font-semibold mt-4">1. ข้อมูลที่เรารวบรวม</h3>
+            <ul className="list-disc ml-6 mb-2">
+              <li>ชื่อและนามสกุล</li>
+              <li>อีเมล</li>
+              <li>ข้อมูลการใช้งานเว็บไซต์ผ่านคุกกี้</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold mt-4">2. วิธีการใช้งานข้อมูล</h3>
+            <ul className="list-disc ml-6 mb-2">
+              <li>เพื่อปรับปรุงบริการและประสบการณ์ของผู้ใช้</li>
+              <li>ส่งข้อมูลข่าวสารหรือโปรโมชั่น (หากท่านยินยอม)</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold mt-4">3. การแบ่งปันข้อมูล</h3>
+            <p>เราจะไม่แบ่งปันข้อมูลส่วนบุคคลของคุณให้บุคคลภายนอก ยกเว้นตามที่กฎหมายกำหนด</p>
+
+            <h3 className="text-lg font-semibold mt-4">4. สิทธิของคุณ</h3>
+            <ul className="list-disc ml-6 mb-2">
+              <li>เข้าถึง แก้ไข หรือลบข้อมูลส่วนบุคคลของคุณ</li>
+              <li>ปฏิเสธการรับข่าวสารทางอีเมล</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold mt-4">5. ติดต่อเรา</h3>
+            <p>หากมีคำถามเพิ่มเติม กรุณาติดต่อ: 📧 อีเมล: support@reactlearninghub.com</p>
+          </div>
+        </div>
+      )}
 
       {/* ปุ่มเปิด FAQ Popup */}
       <button
@@ -99,7 +150,7 @@ const CategoriesPage = () => {
       {/* Popup ถามตอบ */}
       {showFAQ && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="relative p-6 w-11/12 md:w-2/3 lg:w-1/2   ">
+          <div className="relative p-6 w-11/12 md:w-2/3 lg:w-1/2 rounded-lg shadow-lg">
             {/* ปุ่มปิด FAQ */}
             <button
               onClick={() => setShowFAQ(false)}
