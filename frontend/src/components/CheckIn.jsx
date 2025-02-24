@@ -43,7 +43,7 @@ const CheckIn = () => {
         onClick={handleCheckIn}
         className={`px-6 py-3 ${checkedIn
           ? "bg-gray-400 cursor-not-allowed"
-          : "bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300"
+          : "bg-green-700 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300"
         } text-white rounded-full text-lg font-medium shadow-lg transition-all duration-300`}
         disabled={checkedIn || loading} // ปิดปุ่มเมื่อเช็คอินแล้ว หรือกำลังโหลด
       >

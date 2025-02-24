@@ -191,7 +191,7 @@ app.post('/api/checkin', authenticateToken, async (req, res) => {
     });
 
     if (existingAttendance) {
-      return res.status(400).json({ message: "You have already checked in today" });
+      return res.status(400).json({ message: "วันนี้คุณได้เช็คชื่อไปแล้ว!" });
     }
 
     const newAttendance = await prisma.attendance.create({
@@ -711,6 +711,54 @@ app.post("/api/scores", async (req, res) => {
   }
 });
 
+
+//  ใบประกาศ
+app.get("/api/user-scores/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  if (isNaN(userId)) {
+    return res.status(400).json({ error: "❌ Invalid userId" });
+  }
+
+  try {
+    const scores = await prisma.score.findMany({
+      where: { userId: parseInt(userId) },
+      include: {
+        exercise: { select: { id: true, title: true } },
+        user: { select: { id: true, name: true } }, // ดึงชื่อผู้ใช้
+      },
+      orderBy: { score: "desc" },
+    });
+
+    if (scores.length === 0) {
+      return res.status(404).json({ error: "❌ ไม่พบคะแนนของผู้ใช้" });
+    }
+
+    const highestScores = {};
+    scores.forEach((score) => {
+      if (!highestScores[score.exerciseId] || highestScores[score.exerciseId].score < score.score) {
+        highestScores[score.exerciseId] = score;
+      }
+    });
+
+    const formattedScores = Object.values(highestScores).map((s) => ({
+      userName: s.user.name, // ชื่อผู้ใช้
+      exerciseId: s.exercise.id,
+      exerciseTitle: s.exercise.title,
+      score: s.score,
+    }));
+
+    res.json(formattedScores); // ส่งข้อมูลที่ต้องการไปยัง frontend
+  } catch (error) {
+    console.error("❌ Error fetching user scores:", error);
+    res.status(500).json({ error: "❌ เกิดข้อผิดพลาดในการดึงข้อมูลคะแนน" });
+  }
+});
+
+
+
+
+
 //ดูคะแคน
 app.get("/api/scores", async (req, res) => {
   try {
@@ -727,6 +775,8 @@ app.get("/api/scores", async (req, res) => {
     res.status(500).json({ error: "ไม่สามารถโหลดข้อมูลคะแนนได้" });
   }
 });
+
+
 
 
 // Start the server

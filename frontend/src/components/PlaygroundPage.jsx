@@ -83,7 +83,7 @@ const PlaygroundPage = () => {
       <div className="mb-4">
         <label className="block font-medium mb-2">เลือกภาษา:</label>
         <select
-          className="p-2 border rounded w-full"
+          className="p-2 border rounded w-1/4"
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
         >

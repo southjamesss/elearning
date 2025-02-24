@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Chatbot from "./Chatbot";
-import { Dialog } from "@headlessui/react";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const CategoriesPage = () => {
   const navigate = useNavigate();
   const [showFAQ, setShowFAQ] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [score, setScore] = useState(null);
+  const [userName, setUserName] = useState("User"); // Example username
+  const [showCertificateButton, setShowCertificateButton] = useState(false);
 
   const categories = [
     { id: 1, name: "บทความเกี่ยวกับ React", description: "อ่านบทความและเนื้อหาที่เกี่ยวข้องกับ React", type: "article" },
     { id: 2, name: "แบบฝึกหัด React", description: "ทดสอบความรู้ของคุณเกี่ยวกับ React", type: "exercise" },
     { id: 3, name: "ทดลองโค้ด", description: "ลองเขียนโค้ด React และดูผลลัพธ์แบบเรียลไทม์", type: "playground" },
+    { id: 4, name: "ใบประกาศ", description: "ออกใบประกาศการทำแบบฝึกหัด", type: "certificate" }, // New certificate category
   ];
 
   // ฟังก์ชันเปลี่ยนหน้า
@@ -19,6 +24,7 @@ const CategoriesPage = () => {
     if (category.type === "article") navigate(`/articles?category=${category.id}`);
     else if (category.type === "exercise") navigate(`/exercises?category=${category.id}`);
     else if (category.type === "playground") navigate(`/playground`);
+    else if (category.type === "certificate") navigate(`/certificate`); // Navigate to certificate page if needed
   };
 
   // ฟังก์ชันปิด FAQ ด้วยปุ่ม `Esc`
@@ -35,6 +41,45 @@ const CategoriesPage = () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
+
+  // ฟังก์ชันสำหรับการออกใบประกาศ
+  const generateCertificate = () => {
+    const doc = new jsPDF("p", "mm", "a4");
+    doc.setFontSize(26);
+    doc.text("ใบประกาศนียบัตร", 105, 80, null, null, "center");
+
+    doc.setFontSize(18);
+    doc.text("ขอมอบให้แก่", 105, 100, null, null, "center");
+    doc.setFontSize(22);
+    doc.setFont("Helvetica", "bold");
+    doc.text(userName, 105, 115, null, null, "center");
+
+    doc.setFontSize(18);
+    doc.setFont("Helvetica", "normal");
+    doc.text("สำหรับการทำแบบฝึกหัด", 105, 130, null, null, "center");
+    
+    doc.setFontSize(20);
+    doc.setFont("Helvetica", "bold");
+    doc.text(`คะแนนที่ได้รับ: ${score} คะแนน`, 105, 150, null, null, "center");
+
+    doc.setLineWidth(0.5);
+    doc.line(50, 175, 160, 175);
+
+    doc.setFontSize(14);
+    doc.text(`ลงวันที่: ${new Date().toLocaleDateString()}`, 105, 190, null, null, "center");
+
+    doc.text("ลงชื่อ", 60, 210);
+    doc.text("_____________________", 50, 215);
+    doc.text("อาจารย์ผู้ดูแล", 60, 225);
+
+    doc.save(`${userName}-certificate.pdf`);
+  };
+
+  // ฟังก์ชันที่จำลองการทำแบบฝึกหัดและการได้คะแนน
+  const handleScoreSubmit = (newScore) => {
+    setScore(newScore);
+    setShowCertificateButton(true);  // Display the certificate button when the score is set
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-800">
@@ -61,10 +106,12 @@ const CategoriesPage = () => {
                   ? "bg-blue-600 hover:bg-blue-700"
                   : category.type === "exercise"
                     ? "bg-green-600 hover:bg-green-700"
+                    : category.type === "certificate" // New certificate type button styling
+                    ? "bg-yellow-600 hover:bg-yellow-700"
                     : "bg-purple-600 hover:bg-purple-700"
                   } text-white rounded transition duration-200`}
               >
-                {category.type === "article" ? "อ่านบทความ" : category.type === "exercise" ? "ทำแบบฝึกหัด" : "ทดลองโค้ด"}
+                {category.type === "article" ? "อ่านบทความ" : category.type === "exercise" ? "ทำแบบฝึกหัด" : category.type === "certificate" ? "รับใบประกาศ" : "ทดลองโค้ด"}
               </button>
             </div>
           ))}
@@ -162,6 +209,18 @@ const CategoriesPage = () => {
             {/* แสดง Chatbot */}
             <Chatbot />
           </div>
+        </div>
+      )}
+
+      {/* ปุ่มดาวน์โหลดใบประกาศ */}
+      {showCertificateButton && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <button
+            onClick={generateCertificate}
+            className="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-300"
+          >
+            ดาวน์โหลดใบประกาศ
+          </button>
         </div>
       )}
     </div>

@@ -13,6 +13,7 @@ import AdminUsersPage from "./components/AdminUsersPage";
 import EditExercisePage from "./components/EditExercisePage";
 import PlaygroundPage from "./components/PlaygroundPage";
 import ScoresPage from "./components/ScoresPage";
+import CertificatePage from "./components/CertificatePage";
 
 const App = () => {
   return (
@@ -33,6 +34,7 @@ const App = () => {
         <Route path="/admin/exercises/edit/:id" element={<EditExercisePage />} />
         <Route path="/playground" element={<PlaygroundPage />} />
         <Route path="/admin/score" element={<ScoresPage />} />
+        <Route path="/certificate" element={<CertificatePage />} />
       </Routes>
     </Router>
   );

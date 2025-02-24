@@ -83,7 +83,7 @@ const HomePage = () => {
             </div>
             <div className="flex space-x-4">
               <CheckIn setCheckedIn={setCheckedIn} />
-              <button onClick={handleLogout} className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full">
+              <button onClick={handleLogout} className="px-6 py-3 bg-red-700 hover:bg-red-700 text-white rounded-full">
                 ออกจากระบบ
               </button>
             </div>
