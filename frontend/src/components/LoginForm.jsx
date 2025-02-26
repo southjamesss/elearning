@@ -26,24 +26,24 @@ const LoginForm = () => {
         password,
       });
   
+      console.log("Response data:", response.data); // ✅ ดูว่า role ได้รับค่าอะไร
       const { accessToken, refreshToken, role, userId } = response.data;
-  
-      console.log("Response data:", response.data); // ตรวจสอบ response จากเซิร์ฟเวอร์
   
       localStorage.setItem("token", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
-      localStorage.setItem("userId", userId); // เพิ่มการเก็บ userId
+      localStorage.setItem("userId", userId);
+      localStorage.setItem("role", role); // ✅ เก็บ role ใน localStorage
   
-      console.log("Stored userId:", localStorage.getItem("userId")); // ตรวจสอบว่า userId ถูกเก็บใน localStorage หรือไม่
+      console.log("Stored role:", localStorage.getItem("role")); // ✅ ตรวจสอบ role ที่ถูกเก็บไว้
   
-      if (role === "admin") {
+      if (role.toLowerCase() === "admin") {  // ✅ เช็คเป็นตัวพิมพ์เล็ก
         navigate("/admin");
       } else {
         navigate("/home");
       }
     } catch (err) {
       setError(err.response?.data?.error || "เข้าสู่ระบบล้มเหลว");
-      console.error("Login error:", err.response?.data || err); // เพิ่ม log เมื่อเกิดข้อผิดพลาด
+      console.error("Login error:", err.response?.data || err);
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import Chatbot from "./Chatbot";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -11,20 +12,38 @@ const CategoriesPage = () => {
   const [score, setScore] = useState(null);
   const [userName, setUserName] = useState("User"); // Example username
   const [showCertificateButton, setShowCertificateButton] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]); // เก็บข้อมูลอันดับ
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const categories = [
     { id: 1, name: "บทความเกี่ยวกับ React", description: "อ่านบทความและเนื้อหาที่เกี่ยวข้องกับ React", type: "article" },
     { id: 2, name: "แบบฝึกหัด React", description: "ทดสอบความรู้ของคุณเกี่ยวกับ React", type: "exercise" },
     { id: 3, name: "ทดลองโค้ด", description: "ลองเขียนโค้ด React และดูผลลัพธ์แบบเรียลไทม์", type: "playground" },
-    { id: 4, name: "ใบประกาศ", description: "ออกใบประกาศการทำแบบฝึกหัด", type: "certificate" }, // New certificate category
+    { id: 4, name: "ใบประกาศ", description: "ออกใบประกาศการทำแบบฝึกหัด", type: "certificate" },
+    { id: 5, name: "ห้องประชุม", description: "ห้องประชุมการเรียนการสอน", type: "meet" },
   ];
+
+  // ดึงข้อมูลอันดับจาก API
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/api/leaderboard"); // API ที่ต้องเรียกใช้
+        setLeaderboard(response.data); // ตั้งค่า leaderboard
+      } catch (error) {
+        console.error("❌ Error fetching leaderboard:", error);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
 
   // ฟังก์ชันเปลี่ยนหน้า
   const handleNavigate = (category) => {
     if (category.type === "article") navigate(`/articles?category=${category.id}`);
     else if (category.type === "exercise") navigate(`/exercises?category=${category.id}`);
     else if (category.type === "playground") navigate(`/playground`);
-    else if (category.type === "certificate") navigate(`/certificate`); // Navigate to certificate page if needed
+    else if (category.type === "certificate") navigate(`/certificate`);
+    else if (category.type === "meet") navigate(`/meeting-details`);  // Navigate to meet room page
   };
 
   // ฟังก์ชันปิด FAQ ด้วยปุ่ม `Esc`
@@ -57,7 +76,7 @@ const CategoriesPage = () => {
     doc.setFontSize(18);
     doc.setFont("Helvetica", "normal");
     doc.text("สำหรับการทำแบบฝึกหัด", 105, 130, null, null, "center");
-    
+
     doc.setFontSize(20);
     doc.setFont("Helvetica", "bold");
     doc.text(`คะแนนที่ได้รับ: ${score} คะแนน`, 105, 150, null, null, "center");
@@ -84,39 +103,72 @@ const CategoriesPage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white text-gray-800">
       {/* Header */}
-      <div className="bg-gray-100 py-4 shadow-sm">
+      <div className=" py-4 ">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">หมวดหมู่การเรียนรู้</h1>
-          <button onClick={() => navigate("/home")} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
-            ย้อนกลับไปหน้า Home
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setShowLeaderboard(true)}
+              className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+            >
+              🏆 ดูอันดับ
+            </button>
+            <button onClick={() => navigate("/home")} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+              ย้อนกลับไปหน้า Home
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto p-6 flex-grow">
+       {/* Main Content */}
+       <main className="container mx-auto p-6 flex-grow">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => (
-            <div key={category.id} className="p-6 bg-gray-100 rounded-lg shadow-md hover:shadow-lg transition">
-              <h2 className="text-xl font-semibold mb-2">{category.name}</h2>
-              <p className="mb-4">{category.description}</p>
+            <div key={category.id} className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition">
+              <h2 className="text-2xl font-semibold mb-2">{category.name}</h2>
+              <p className="mb-4 text-gray-600">{category.description}</p>
               <button
                 onClick={() => handleNavigate(category)}
                 className={`px-4 py-2 ${category.type === "article"
                   ? "bg-blue-600 hover:bg-blue-700"
                   : category.type === "exercise"
                     ? "bg-green-600 hover:bg-green-700"
-                    : category.type === "certificate" // New certificate type button styling
-                    ? "bg-yellow-600 hover:bg-yellow-700"
-                    : "bg-purple-600 hover:bg-purple-700"
-                  } text-white rounded transition duration-200`}
+                    : category.type === "certificate"
+                      ? "bg-yellow-600 hover:bg-yellow-700"
+                      : category.type === "meet" // Special style for "Meet Room"
+                        ? "bg-indigo-600 hover:bg-indigo-700"
+                        : "bg-purple-600 hover:bg-purple-700"
+                  } text-white rounded-lg transition duration-200`}
               >
-                {category.type === "article" ? "อ่านบทความ" : category.type === "exercise" ? "ทำแบบฝึกหัด" : category.type === "certificate" ? "รับใบประกาศ" : "ทดลองโค้ด"}
+                {category.type === "article" ? "อ่านบทความ" : category.type === "exercise" ? "ทำแบบฝึกหัด" : category.type === "certificate" ? "รับใบประกาศ" : category.type === "meet" ? "เข้าห้องประชุม" : "ทดลองโค้ด"}
               </button>
             </div>
           ))}
         </div>
       </main>
+
+
+      {/* Leaderboard Modal */}
+      {showLeaderboard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+            <h2 className="text-2xl font-bold mb-4 text-center">🏆 Leaderboard อันดับสูงสุด</h2>
+            <ul className="list-decimal list-inside bg-gray-100 p-4 rounded">
+              {leaderboard.map((user, index) => (
+                <li key={user.id} className="text-lg p-2 border-b">
+                  {index + 1}. {user.name} - {user.score} คะแนน
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => setShowLeaderboard(false)}
+              className="mt-4 w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              ปิด
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-gray-800 py-6">
@@ -165,7 +217,7 @@ const CategoriesPage = () => {
               <li>ข้อมูลการใช้งานเว็บไซต์ผ่านคุกกี้</li>
             </ul>
 
-            <h3 className="text-lg font-semibold mt-4">2. วิธีการใช้งานข้อมูล</h3>
+            <h3 className="text-lg font-semibold mt-4">2. วิธีการใช้งานข้อมูล</h3>  
             <ul className="list-disc ml-6 mb-2">
               <li>เพื่อปรับปรุงบริการและประสบการณ์ของผู้ใช้</li>
               <li>ส่งข้อมูลข่าวสารหรือโปรโมชั่น (หากท่านยินยอม)</li>

@@ -14,6 +14,7 @@ import EditExercisePage from "./components/EditExercisePage";
 import PlaygroundPage from "./components/PlaygroundPage";
 import ScoresPage from "./components/ScoresPage";
 import CertificatePage from "./components/CertificatePage";
+import MeetingDetailsPage from "./components/MeetingDetailsPage";
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
         <Route path="/playground" element={<PlaygroundPage />} />
         <Route path="/admin/score" element={<ScoresPage />} />
         <Route path="/certificate" element={<CertificatePage />} />
+        <Route path="/meeting-details" element={<MeetingDetailsPage />} /> 
       </Routes>
     </Router>
   );

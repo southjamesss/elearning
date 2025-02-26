@@ -584,7 +584,7 @@ app.get("/api/attendance", async (req, res) => {
   }
 });
 
-
+//ส่งผ่านไลน์
 app.post("/send-line-notify", async (req, res) => {
   const { message } = req.body;
   const token = process.env.LINE_NOTIFY_TOKEN;
@@ -777,6 +777,48 @@ app.get("/api/scores", async (req, res) => {
 });
 
 
+app.get("/api/leaderboard", async (req, res) => {
+  try {
+    const leaderboard = await prisma.score.findMany({
+      include: {
+        user: { select: { name: true } }, // ดึงชื่อของผู้ใช้
+      },
+      orderBy: { score: "desc" }, // เรียงคะแนนจากมากไปน้อย
+      take: 10, // จำกัดให้ดึงมาแค่ 10 อันดับสูงสุด
+    });
+
+    res.status(200).json(leaderboard);
+  } catch (err) {
+    console.error("❌ Error fetching leaderboard:", err.message);
+    res.status(500).json({ error: "❌ ไม่สามารถโหลดอันดับได้" });
+  }
+});
+
+app.get("/api/leaderboard", async (req, res) => {
+  try {
+    const leaderboard = await prisma.score.findMany({
+      include: {
+        user: { select: { name: true } }, // ดึงชื่อผู้ใช้
+        exercise: { select: { title: true } } // ดึงชื่อแบบฝึกหัด
+      },
+      orderBy: [{ exerciseId: "asc" }, { score: "desc" }], // เรียงตามแบบฝึกหัดและคะแนน
+    });
+
+    const groupedLeaderboard = leaderboard.reduce((acc, entry) => {
+      const exerciseTitle = entry.exercise.title;
+      if (!acc[exerciseTitle]) {
+        acc[exerciseTitle] = [];
+      }
+      acc[exerciseTitle].push({ name: entry.user.name, score: entry.score });
+      return acc;
+    }, {});
+
+    res.status(200).json(groupedLeaderboard);
+  } catch (err) {
+    console.error("Error fetching leaderboard:", err);
+    res.status(500).json({ error: "Failed to fetch leaderboard" });
+  }
+});
 
 
 // Start the server
