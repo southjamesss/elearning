@@ -4,16 +4,18 @@ import axios from "axios";
 import Chatbot from "./Chatbot";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import Leaderboard from "./Leaderboard";  // Import the Leaderboard Component
 
 const CategoriesPage = () => {
   const navigate = useNavigate();
   const [showFAQ, setShowFAQ] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [score, setScore] = useState(null);
-  const [userName, setUserName] = useState("User"); // Example username
+  const [userName, setUserName] = useState("User");
   const [showCertificateButton, setShowCertificateButton] = useState(false);
-  const [leaderboard, setLeaderboard] = useState([]); // เก็บข้อมูลอันดับ
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardByExercise, setLeaderboardByExercise] = useState({});
+  const [selectedExercise, setSelectedExercise] = useState("No Title");
 
   const categories = [
     { id: 1, name: "บทความเกี่ยวกับ React", description: "อ่านบทความและเนื้อหาที่เกี่ยวข้องกับ React", type: "article" },
@@ -23,81 +25,49 @@ const CategoriesPage = () => {
     { id: 5, name: "ห้องประชุม", description: "ห้องประชุมการเรียนการสอน", type: "meet" },
   ];
 
-  // ดึงข้อมูลอันดับจาก API
+  // Fetch leaderboard data from API
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/leaderboard"); // API ที่ต้องเรียกใช้
-        setLeaderboard(response.data); // ตั้งค่า leaderboard
+        const response = await axios.get("http://localhost:3000/api/leaderboard");
+        const data = response.data;
+        console.log("Raw Leaderboard Data:", data);
+
+        const categorizedLeaderboard = data.reduce((acc, entry) => {
+          const { exerciseTitle, userName, score, userId } = entry;
+          const title = exerciseTitle || "No Title";
+
+          if (!acc[title]) {
+            acc[title] = [];
+          }
+
+          const existingUser = acc[title].find(user => user.userId === userId);
+          if (!existingUser || existingUser.score < score) {
+            acc[title] = acc[title].filter(user => user.userId !== userId);
+            acc[title].push({ name: userName, score, userId });
+          }
+          return acc;
+        }, {});
+
+        setLeaderboardByExercise(categorizedLeaderboard);
       } catch (error) {
-        console.error("❌ Error fetching leaderboard:", error);
+        console.error("Error fetching leaderboard data:", error);
       }
     };
-
     fetchLeaderboard();
   }, []);
 
-  // ฟังก์ชันเปลี่ยนหน้า
+  // Navigation function
   const handleNavigate = (category) => {
     if (category.type === "article") navigate(`/articles?category=${category.id}`);
     else if (category.type === "exercise") navigate(`/exercises?category=${category.id}`);
     else if (category.type === "playground") navigate(`/playground`);
     else if (category.type === "certificate") navigate(`/certificate`);
-    else if (category.type === "meet") navigate(`/meeting-details`);  // Navigate to meet room page
+    else if (category.type === "meet") navigate(`/meeting-details`);
   };
 
-  // ฟังก์ชันปิด FAQ ด้วยปุ่ม `Esc`
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        setShowFAQ(false);
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  // ฟังก์ชันสำหรับการออกใบประกาศ
-  const generateCertificate = () => {
-    const doc = new jsPDF("p", "mm", "a4");
-    doc.setFontSize(26);
-    doc.text("ใบประกาศนียบัตร", 105, 80, null, null, "center");
-
-    doc.setFontSize(18);
-    doc.text("ขอมอบให้แก่", 105, 100, null, null, "center");
-    doc.setFontSize(22);
-    doc.setFont("Helvetica", "bold");
-    doc.text(userName, 105, 115, null, null, "center");
-
-    doc.setFontSize(18);
-    doc.setFont("Helvetica", "normal");
-    doc.text("สำหรับการทำแบบฝึกหัด", 105, 130, null, null, "center");
-
-    doc.setFontSize(20);
-    doc.setFont("Helvetica", "bold");
-    doc.text(`คะแนนที่ได้รับ: ${score} คะแนน`, 105, 150, null, null, "center");
-
-    doc.setLineWidth(0.5);
-    doc.line(50, 175, 160, 175);
-
-    doc.setFontSize(14);
-    doc.text(`ลงวันที่: ${new Date().toLocaleDateString()}`, 105, 190, null, null, "center");
-
-    doc.text("ลงชื่อ", 60, 210);
-    doc.text("_____________________", 50, 215);
-    doc.text("อาจารย์ผู้ดูแล", 60, 225);
-
-    doc.save(`${userName}-certificate.pdf`);
-  };
-
-  // ฟังก์ชันที่จำลองการทำแบบฝึกหัดและการได้คะแนน
-  const handleScoreSubmit = (newScore) => {
-    setScore(newScore);
-    setShowCertificateButton(true);  // Display the certificate button when the score is set
+  const handleExerciseChange = (event) => {
+    setSelectedExercise(event.target.value);
   };
 
   return (
@@ -120,8 +90,10 @@ const CategoriesPage = () => {
         </div>
       </div>
 
-       {/* Main Content */}
-       <main className="container mx-auto p-6 flex-grow">
+      
+
+      {/* Main Content */}
+      <main className="container mx-auto p-6 flex-grow">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => (
             <div key={category.id} className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition">
@@ -129,45 +101,40 @@ const CategoriesPage = () => {
               <p className="mb-4 text-gray-600">{category.description}</p>
               <button
                 onClick={() => handleNavigate(category)}
-                className={`px-4 py-2 ${category.type === "article"
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : category.type === "exercise"
+                className={`px-4 py-2 ${
+                  category.type === "article"
+                    ? "bg-blue-600 hover:bg-blue-700"
+                    : category.type === "exercise"
                     ? "bg-green-600 hover:bg-green-700"
                     : category.type === "certificate"
-                      ? "bg-yellow-600 hover:bg-yellow-700"
-                      : category.type === "meet" // Special style for "Meet Room"
-                        ? "bg-indigo-600 hover:bg-indigo-700"
-                        : "bg-purple-600 hover:bg-purple-700"
-                  } text-white rounded-lg transition duration-200`}
+                    ? "bg-yellow-600 hover:bg-yellow-700"
+                    : category.type === "meet"
+                    ? "bg-indigo-600 hover:bg-indigo-700"
+                    : "bg-purple-600 hover:bg-purple-700"
+                } text-white rounded-lg transition duration-200`}
               >
-                {category.type === "article" ? "อ่านบทความ" : category.type === "exercise" ? "ทำแบบฝึกหัด" : category.type === "certificate" ? "รับใบประกาศ" : category.type === "meet" ? "เข้าห้องประชุม" : "ทดลองโค้ด"}
+                {category.type === "article"
+                  ? "อ่านบทความ"
+                  : category.type === "exercise"
+                  ? "ทำแบบฝึกหัด"
+                  : category.type === "certificate"
+                  ? "รับใบประกาศ"
+                  : category.type === "meet"
+                  ? "เข้าห้องประชุม"
+                  : "ทดลองโค้ด"}
               </button>
             </div>
           ))}
         </div>
       </main>
 
-
-      {/* Leaderboard Modal */}
+      {/* Pass props to the Leaderboard Component */}
       {showLeaderboard && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-            <h2 className="text-2xl font-bold mb-4 text-center">🏆 Leaderboard อันดับสูงสุด</h2>
-            <ul className="list-decimal list-inside bg-gray-100 p-4 rounded">
-              {leaderboard.map((user, index) => (
-                <li key={user.id} className="text-lg p-2 border-b">
-                  {index + 1}. {user.name} - {user.score} คะแนน
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => setShowLeaderboard(false)}
-              className="mt-4 w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              ปิด
-            </button>
-          </div>
-        </div>
+        <Leaderboard 
+          leaderboardByExercise={leaderboardByExercise} 
+          selectedExercise={selectedExercise} 
+          setShowLeaderboard={setShowLeaderboard} 
+        />
       )}
 
       {/* Footer */}
@@ -182,8 +149,7 @@ const CategoriesPage = () => {
             <a href="/contact" className="hover:underline text-gray-400">
               ติดต่อ
             </a>{" "}
-            |{" "}
-            {/* ปุ่มเปิด Modal */}
+            |{/* Privacy Policy Modal Button */}
             <button
               className="hover:underline text-gray-400"
               onClick={() => setIsOpen(true)}
@@ -194,11 +160,11 @@ const CategoriesPage = () => {
         </div>
       </footer>
 
-      {/* Modal นโยบายความเป็นส่วนตัว */}
+      {/* Privacy Policy Modal */}
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="relative bg-white p-8 w-11/12 md:w-2/3 lg:w-1/2 rounded-lg shadow-lg overflow-y-auto max-h-[80vh]">
-            {/* ปุ่มปิด */}
+            {/* Close Button */}
             <button
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600"
@@ -206,9 +172,12 @@ const CategoriesPage = () => {
               ✕
             </button>
 
-            {/* เนื้อหานโยบายความเป็นส่วนตัว */}
+            {/* Privacy Policy Content */}
             <h2 className="text-2xl font-bold mb-4">นโยบายความเป็นส่วนตัว</h2>
-            <p>เราที่ React Learning Hub ให้ความสำคัญกับความเป็นส่วนตัวของผู้ใช้บริการของเรา ข้อมูลส่วนบุคคลของคุณจะถูกเก็บและใช้งานตามข้อกำหนดดังนี้:</p>
+            <p>
+              เราที่ React Learning Hub ให้ความสำคัญกับความเป็นส่วนตัวของผู้ใช้บริการของเรา
+              ข้อมูลส่วนบุคคลของคุณจะถูกเก็บและใช้งานตามข้อกำหนดดังนี้:
+            </p>
 
             <h3 className="text-lg font-semibold mt-4">1. ข้อมูลที่เรารวบรวม</h3>
             <ul className="list-disc ml-6 mb-2">
@@ -217,14 +186,17 @@ const CategoriesPage = () => {
               <li>ข้อมูลการใช้งานเว็บไซต์ผ่านคุกกี้</li>
             </ul>
 
-            <h3 className="text-lg font-semibold mt-4">2. วิธีการใช้งานข้อมูล</h3>  
+            <h3 className="text-lg font-semibold mt-4">2. วิธีการใช้งานข้อมูล</h3>
             <ul className="list-disc ml-6 mb-2">
               <li>เพื่อปรับปรุงบริการและประสบการณ์ของผู้ใช้</li>
               <li>ส่งข้อมูลข่าวสารหรือโปรโมชั่น (หากท่านยินยอม)</li>
             </ul>
 
             <h3 className="text-lg font-semibold mt-4">3. การแบ่งปันข้อมูล</h3>
-            <p>เราจะไม่แบ่งปันข้อมูลส่วนบุคคลของคุณให้บุคคลภายนอก ยกเว้นตามที่กฎหมายกำหนด</p>
+            <p>
+              เราจะไม่แบ่งปันข้อมูลส่วนบุคคลของคุณให้บุคคลภายนอก
+              ยกเว้นตามที่กฎหมายกำหนด
+            </p>
 
             <h3 className="text-lg font-semibold mt-4">4. สิทธิของคุณ</h3>
             <ul className="list-disc ml-6 mb-2">
@@ -233,12 +205,14 @@ const CategoriesPage = () => {
             </ul>
 
             <h3 className="text-lg font-semibold mt-4">5. ติดต่อเรา</h3>
-            <p>หากมีคำถามเพิ่มเติม กรุณาติดต่อ: 📧 อีเมล: support@reactlearninghub.com</p>
+            <p>
+              หากมีคำถามเพิ่มเติม กรุณาติดต่อ: 📧 อีเมล: support@reactlearninghub.com
+            </p>
           </div>
         </div>
       )}
 
-      {/* ปุ่มเปิด FAQ Popup */}
+      {/* FAQ Popup Button */}
       <button
         onClick={() => setShowFAQ(true)}
         className="fixed bottom-6 right-6 bg-opacity-80 from-purple-500 via-pink-500 to-red-500 text-white p-3 rounded-full shadow-lg hover:from-purple-600 hover:via-pink-600 hover:to-red-600 transition-transform transform hover:scale-105 z-50 flex items-center justify-center border border-gray-300"
@@ -246,11 +220,11 @@ const CategoriesPage = () => {
         ❓ <span className="ml-2 text-sm font-medium">ถามตอบ</span>
       </button>
 
-      {/* Popup ถามตอบ */}
+      {/* FAQ Popup */}
       {showFAQ && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="relative p-6 w-11/12 md:w-2/3 lg:w-1/2 rounded-lg shadow-lg">
-            {/* ปุ่มปิด FAQ */}
+            {/* Close FAQ Button */}
             <button
               onClick={() => setShowFAQ(false)}
               className="absolute top-4 right-4 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition duration-200"
@@ -258,13 +232,13 @@ const CategoriesPage = () => {
               ✕
             </button>
 
-            {/* แสดง Chatbot */}
+            {/* Chatbot Component */}
             <Chatbot />
           </div>
         </div>
       )}
 
-      {/* ปุ่มดาวน์โหลดใบประกาศ */}
+      {/* Certificate Download Button */}
       {showCertificateButton && (
         <div className="fixed bottom-6 right-6 z-50">
           <button

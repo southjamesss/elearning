@@ -13,9 +13,10 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 app.use(cors({
-  origin: 'http://localhost:5173', // เปลี่ยน URL ตามที่ต้องการ
+  origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
+
 app.use(express.json());  // สำหรับรับข้อมูล JSON
 
 // Middleware สำหรับตรวจสอบ Token
@@ -777,48 +778,69 @@ app.get("/api/scores", async (req, res) => {
 });
 
 
+
+
+
+// Leaderboard Endpoint
 app.get("/api/leaderboard", async (req, res) => {
   try {
+    // Fetch all leaderboard entries, including user and exercise details
     const leaderboard = await prisma.score.findMany({
       include: {
-        user: { select: { name: true } }, // ดึงชื่อของผู้ใช้
+        user: { select: { name: true, id: true } }, // Include user name and ID
+        exercise: { select: { title: true, id: true } }, // Include exercise title and ID
       },
-      orderBy: { score: "desc" }, // เรียงคะแนนจากมากไปน้อย
-      take: 10, // จำกัดให้ดึงมาแค่ 10 อันดับสูงสุด
+      orderBy: [
+        { exerciseId: "asc" }, // Order by exerciseId first
+        { score: "desc" }, // Then order by score descending
+      ],
     });
 
-    res.status(200).json(leaderboard);
+    // Group the data by exerciseTitle and ensure highest score for each user
+    const groupedLeaderboard = leaderboard.reduce((acc, entry) => {
+      const exerciseTitle = entry.exercise.title;
+      const userId = entry.user.id;
+
+      // Initialize the group for this exercise if it doesn't exist
+      if (!acc[exerciseTitle]) {
+        acc[exerciseTitle] = [];
+      }
+
+      // Check if the user already has a score for this exercise
+      const existingUser = acc[exerciseTitle].find(user => user.userId === userId);
+
+      // If no user exists or the current score is higher, update the leaderboard
+      if (!existingUser || existingUser.score < entry.score) {
+        // Remove the old score if the user is already in the leaderboard
+        if (existingUser) {
+          acc[exerciseTitle] = acc[exerciseTitle].filter(user => user.userId !== userId);
+        }
+
+        // Add the user with the highest score
+        acc[exerciseTitle].push({
+          name: entry.user.name,
+          userId: entry.user.id,
+          score: entry.score,
+        });
+      }
+
+      return acc;
+    }, {});
+
+    // Send the grouped leaderboard as the response
+    res.status(200).json(groupedLeaderboard);
   } catch (err) {
-    console.error("❌ Error fetching leaderboard:", err.message);
+    console.error("❌ Error fetching leaderboard:", err);
     res.status(500).json({ error: "❌ ไม่สามารถโหลดอันดับได้" });
   }
 });
 
-app.get("/api/leaderboard", async (req, res) => {
-  try {
-    const leaderboard = await prisma.score.findMany({
-      include: {
-        user: { select: { name: true } }, // ดึงชื่อผู้ใช้
-        exercise: { select: { title: true } } // ดึงชื่อแบบฝึกหัด
-      },
-      orderBy: [{ exerciseId: "asc" }, { score: "desc" }], // เรียงตามแบบฝึกหัดและคะแนน
-    });
 
-    const groupedLeaderboard = leaderboard.reduce((acc, entry) => {
-      const exerciseTitle = entry.exercise.title;
-      if (!acc[exerciseTitle]) {
-        acc[exerciseTitle] = [];
-      }
-      acc[exerciseTitle].push({ name: entry.user.name, score: entry.score });
-      return acc;
-    }, {});
 
-    res.status(200).json(groupedLeaderboard);
-  } catch (err) {
-    console.error("Error fetching leaderboard:", err);
-    res.status(500).json({ error: "Failed to fetch leaderboard" });
-  }
-});
+
+
+
+
 
 
 // Start the server
