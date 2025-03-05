@@ -4,7 +4,14 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
+const multer = require('multer');
+const fs = require('fs');  // เพิ่มการ import fs
+const FormData = require("form-data")
 
+
+
+
+const upload = multer({ dest: 'uploads/' });  // กำหนดที่เก็บไฟล์ที่อัพโหลด
 const app = express();
 const prisma = new PrismaClient();
 const PORT = 3000;
@@ -586,39 +593,61 @@ app.get("/api/attendance", async (req, res) => {
 });
 
 //ส่งผ่านไลน์
-app.post("/send-line-notify", async (req, res) => {
-  const { message } = req.body;
-  const token = process.env.LINE_NOTIFY_TOKEN;
-
-  console.log("Message received:", message);
-  console.log("LINE Notify Token:", token);
-
-  if (!message) {
-      return res.status(400).json({ success: false, error: "Message is required" });
-  }
-
+ app.post("/send-line-notify", upload.single("imageFile"), async (req, res) => {
   try {
-      const response = await fetch("https://notify-api.line.me/api/notify", {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              Authorization: `Bearer ${token}`,
-          },
-          body: new URLSearchParams({ message }),
-      });
+    const { message } = req.body;
+    const imageFile = req.file; // รับไฟล์ที่ถูกอัปโหลด
+    const token = process.env.LINE_NOTIFY_TOKEN;
 
-      if (response.ok) {
-          res.status(200).json({ success: true, message: "Message sent successfully!" });
-      } else {
-          const errorText = await response.text();
-          console.error("LINE Notify API Error:", errorText);
-          res.status(response.status).json({ success: false, error: errorText });
-      }
+    console.log("✅ Message received:", message);
+    console.log("✅ Image received:", imageFile ? imageFile.filename : "No image");
+
+    if (!message && !imageFile) {
+      return res.status(400).json({ success: false, error: "Message or image is required" });
+    }
+
+    // สร้าง FormData
+    const formData = new FormData();
+    formData.append("message", message || " ");
+
+    if (imageFile) {
+      const imageStream = fs.createReadStream(imageFile.path);
+      formData.append("imageFile", imageStream, {
+        filename: imageFile.originalname,
+        contentType: imageFile.mimetype,
+      });
+    }
+
+    // ตรวจสอบค่า FormData
+    for (let pair of formData.entries()) {
+      console.log("✅ FormData -", pair[0], ":", pair[1]);
+    }
+
+    // ส่งไปยัง LINE Notify
+    const response = await fetch("https://notify-api.line.me/api/notify", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...formData.getHeaders(),
+      },
+      body: formData,
+    });
+
+    const result = await response.json();
+    console.log("📢 LINE Notify Response:", result);
+
+    if (response.ok) {
+      res.status(200).json({ success: true, message: "✅ Message sent successfully!" });
+    } else {
+      res.status(response.status).json({ success: false, error: result });
+    }
   } catch (error) {
-      console.error("Error in /send-line-notify:", error);
-      res.status(500).json({ success: false, error: "Internal server error" });
+    console.error("❌ Error in /send-line-notify:", error);
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
 });
+
+
 
 
 // Endpoint สำหรับรันโค้ด

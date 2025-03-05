@@ -33,7 +33,7 @@ const CategoriesPage = () => {
         const data = response.data;
         console.log("Raw Leaderboard Data:", data);
 
-        const categorizedLeaderboard = data.reduce((acc, entry) => {
+        const categorizedLeaderboard = data. reduce((acc, entry) => {
           const { exerciseTitle, userName, score, userId } = entry;
           const title = exerciseTitle || "No Title";
 

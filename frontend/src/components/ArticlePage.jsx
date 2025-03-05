@@ -29,9 +29,22 @@ const ArticlePage = () => {
             npx create-react-app my-app
           `
         },
+
+        // บทที่ 2: การติดตั้ง React
+        {
+          sectionTitle: "บทที่ 2: การติดตั้ง React",
+          content: `
+            เรียนรู้วิธีการติดตั้ง React ในเครื่องคอมพิวเตอร์ของคุณ
   
-  
-        // บทที่ 3: Props และ State
+            ขั้นตอน:
+            1. ติดตั้ง Node.js
+            2. ติดตั้ง npm (Node Package Manager)
+            3. สร้างโปรเจกต์ด้วยคำสั่ง:
+              npx create-react-app my-app
+          `
+        },
+
+        // บทที่ 3: การใช้งาน Props และ State
         {
           sectionTitle: "บทที่ 3: การใช้งาน Props และ State",
           content: `
@@ -43,7 +56,7 @@ const ArticlePage = () => {
             <button onClick={() => setCount(count + 1)}>เพิ่ม {count}</button>
           `
         },
-  
+
         // บทที่ 4: การจัดการ Event
         {
           sectionTitle: "บทที่ 4: การจัดการ Event",
@@ -236,14 +249,14 @@ const ArticlePage = () => {
   };
 
   const book = bookContent[categoryId] || { title: "บทความไม่พบ", content: [] };
-  const [currentPage, setCurrentPage] = useState(-1);
+  const [currentPage, setCurrentPage] = useState(0); // ตั้งค่าให้เริ่มต้นที่หน้า 0 (บทที่ 1)
 
   const handleNextPage = () => {
     if (currentPage < book.content.length - 1) setCurrentPage(currentPage + 1);
   };
 
   const handlePrevPage = () => {
-    if (currentPage > -1) setCurrentPage(currentPage - 1);
+    if (currentPage > 0) setCurrentPage(currentPage - 1); // ป้องกันไม่ให้ลดต่ำกว่า 0
   };
 
   return (
@@ -252,7 +265,7 @@ const ArticlePage = () => {
       <button className="back-btn" onClick={() => navigate(-1)}>ย้อนกลับ</button>
 
       <div className="book">
-        {currentPage === -1 ? (
+        {currentPage === 0 ? (
           <div className="cover-page" onClick={handleNextPage}>
             <h1>{book.cover}</h1>
             <p>คลิกเพื่อเริ่มอ่าน</p>
@@ -275,7 +288,7 @@ const ArticlePage = () => {
       </div>
 
       {/* ปุ่มเปลี่ยนหน้า */}
-      {currentPage > -1 && (
+      {currentPage > 0 && (
         <>
           <button className="flip-btn left" onClick={handlePrevPage}>❮</button>
           <button className="flip-btn right" onClick={handleNextPage}>❯</button>
