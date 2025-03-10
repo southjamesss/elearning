@@ -15,30 +15,32 @@ import PlaygroundPage from "./components/PlaygroundPage";
 import ScoresPage from "./components/ScoresPage";
 import CertificatePage from "./components/CertificatePage";
 import MeetingDetailsPage from "./components/MeetingDetailsPage";
+import { ThemeProvider } from "./components/ThemeContext"; // ✅ Import ThemeProvider
 
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        {/* เปลี่ยนเส้นทางหน้าแรกไปยังหน้า Login */}
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegisterForm />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/videos" element={<VideosPage />} />
-        <Route path="/categories" element={<CategoriesPage />} />
-        <Route path="/articles" element={<ArticlePage />} />
-        <Route path="/exercises" element={<ExercisesPage />} />
-        <Route path="/admin/exercises" element={<AdminExercisesPage />} />
-        <Route path="/admin/users" element={<AdminUsersPage />} />
-        <Route path="/admin/exercises/edit/:id" element={<EditExercisePage />} />
-        <Route path="/playground" element={<PlaygroundPage />} />
-        <Route path="/admin/score" element={<ScoresPage />} />
-        <Route path="/certificate" element={<CertificatePage />} />
-        <Route path="/meeting-details" element={<MeetingDetailsPage />} /> 
-      </Routes>
-    </Router>
+    <ThemeProvider>  {/* ✅ ครอบทุกหน้าเพื่อให้เปลี่ยนธีมได้ทั่วทั้งแอป */}
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegisterForm />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/videos" element={<VideosPage />} />
+          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/articles" element={<ArticlePage />} />
+          <Route path="/exercises" element={<ExercisesPage />} />
+          <Route path="/admin/exercises" element={<AdminExercisesPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/exercises/edit/:id" element={<EditExercisePage />} />
+          <Route path="/playground" element={<PlaygroundPage />} />
+          <Route path="/admin/score" element={<ScoresPage />} />
+          <Route path="/certificate" element={<CertificatePage />} />
+          <Route path="/meeting-details" element={<MeetingDetailsPage />} /> 
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 };
 

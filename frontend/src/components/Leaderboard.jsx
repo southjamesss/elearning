@@ -53,13 +53,18 @@ const Leaderboard = ({ setShowLeaderboard }) => {
         {/* Display leaderboard data for selected exercise */}
         <div className="space-y-4">
           {selectedExerciseData ? (
-            selectedExerciseData.map((user, idx) => (
-              <div key={idx} className="bg-gray-100 p-4 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold mb-2">
-                  {idx + 1}. {user.name} - {user.score} คะแนน
-                </h3>
-              </div>
-            ))
+            selectedExerciseData.map((user, idx) => {
+              const rankEmojis = ["🥇", "🥈", "🥉"];
+              const emoji = rankEmojis[idx] || ""; // ใช้แค่อันดับ 1-3 มีอิโมจิ
+
+              return (
+                <div key={idx} className="bg-gray-100 p-4 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold mb-2">
+                    {idx + 1}. {user.name} {emoji} - {user.score} คะแนน
+                  </h3>
+                </div>
+              );
+            })
           ) : (
             <p className="text-center text-gray-500">กำลังโหลดข้อมูลอันดับ...</p>
           )}

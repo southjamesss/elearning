@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CheckIn from "./CheckIn";
+import { useTheme } from "./ThemeContext";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { theme, changeTheme } = useTheme();
   const [checkedIn, setCheckedIn] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -42,8 +44,10 @@ const HomePage = () => {
       alert("กรุณากรอกข้อความก่อนส่ง");
       return;
     }
-
+  
     setIsLoading(true);
+    const token = "RgMYD7CZkp3MJjTzjSkCxhL8lUpXTa7PuoYdCwgFNpd"; // เปลี่ยนเป็น process.env.LINE_NOTIFY_TOKEN ถ้าคุณใช้งาน .env
+  
     try {
       const response = await fetch("http://localhost:3000/send-line-notify", {
         method: "POST",
@@ -52,7 +56,7 @@ const HomePage = () => {
         },
         body: JSON.stringify({ message }),
       });
-
+  
       if (response.ok) {
         alert("ส่งข้อความสำเร็จ!");
         setMessage("");
@@ -65,6 +69,15 @@ const HomePage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleThemeChange = () => {
+    changeTheme({
+      primary: "#00b4d8",
+      secondary: "#ffc300",
+      background: "#14213d",
+      text: "#ffffff",
+    });
   };
 
   return (

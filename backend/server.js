@@ -593,42 +593,27 @@ app.get("/api/attendance", async (req, res) => {
 });
 
 //ส่งผ่านไลน์
- app.post("/send-line-notify", upload.single("imageFile"), async (req, res) => {
+app.post("/send-line-notify", async (req, res) => {
   try {
     const { message } = req.body;
-    const imageFile = req.file; // รับไฟล์ที่ถูกอัปโหลด
     const token = process.env.LINE_NOTIFY_TOKEN;
 
-    console.log("✅ Message received:", message);
-    console.log("✅ Image received:", imageFile ? imageFile.filename : "No image");
+    console.log("✅ Message:", message);
 
-    if (!message && !imageFile) {
-      return res.status(400).json({ success: false, error: "Message or image is required" });
+    if (!message) {
+      return res.status(400).json({ success: false, error: "Message is required" });
     }
 
-    // สร้าง FormData
-    const formData = new FormData();
-    formData.append("message", message || " ");
+    // สร้าง form data
+    const formData = new URLSearchParams();
+    formData.append("message", message);
 
-    if (imageFile) {
-      const imageStream = fs.createReadStream(imageFile.path);
-      formData.append("imageFile", imageStream, {
-        filename: imageFile.originalname,
-        contentType: imageFile.mimetype,
-      });
-    }
-
-    // ตรวจสอบค่า FormData
-    for (let pair of formData.entries()) {
-      console.log("✅ FormData -", pair[0], ":", pair[1]);
-    }
-
-    // ส่งไปยัง LINE Notify
+    // ส่ง request ไปยัง LINE Notify
     const response = await fetch("https://notify-api.line.me/api/notify", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        ...formData.getHeaders(),
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formData,
     });
@@ -642,7 +627,7 @@ app.get("/api/attendance", async (req, res) => {
       res.status(response.status).json({ success: false, error: result });
     }
   } catch (error) {
-    console.error("❌ Error in /send-line-notify:", error);
+    console.error("❌ Error:", error);
     res.status(500).json({ success: false, error: "Internal server error" });
   }
 });

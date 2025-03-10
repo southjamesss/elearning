@@ -33,7 +33,7 @@ const CategoriesPage = () => {
         const data = response.data;
         console.log("Raw Leaderboard Data:", data);
 
-        const categorizedLeaderboard = data. reduce((acc, entry) => {
+        const categorizedLeaderboard = data.reduce((acc, entry) => {
           const { exerciseTitle, userName, score, userId } = entry;
           const title = exerciseTitle || "No Title";
 
@@ -79,7 +79,7 @@ const CategoriesPage = () => {
           <div className="flex gap-4">
             <button
               onClick={() => setShowLeaderboard(true)}
-              className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+              className="px-4 py-2 bg-[#B0413E] text-white rounded hover:bg-[#D35450] transition-colors"
             >
               🏆 ดูอันดับ
             </button>
@@ -90,7 +90,7 @@ const CategoriesPage = () => {
         </div>
       </div>
 
-      
+
 
       {/* Main Content */}
       <main className="container mx-auto p-6 flex-grow">
@@ -101,27 +101,26 @@ const CategoriesPage = () => {
               <p className="mb-4 text-gray-600">{category.description}</p>
               <button
                 onClick={() => handleNavigate(category)}
-                className={`px-4 py-2 ${
-                  category.type === "article"
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : category.type === "exercise"
+                className={`px-4 py-2 ${category.type === "article"
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : category.type === "exercise"
                     ? "bg-green-600 hover:bg-green-700"
                     : category.type === "certificate"
-                    ? "bg-yellow-600 hover:bg-yellow-700"
-                    : category.type === "meet"
-                    ? "bg-indigo-600 hover:bg-indigo-700"
-                    : "bg-purple-600 hover:bg-purple-700"
-                } text-white rounded-lg transition duration-200`}
+                      ? "bg-yellow-600 hover:bg-yellow-700"
+                      : category.type === "meet"
+                        ? "bg-indigo-600 hover:bg-indigo-700"
+                        : "bg-purple-600 hover:bg-purple-700"
+                  } text-white rounded-lg transition duration-200`}
               >
                 {category.type === "article"
                   ? "อ่านบทความ"
                   : category.type === "exercise"
-                  ? "ทำแบบฝึกหัด"
-                  : category.type === "certificate"
-                  ? "รับใบประกาศ"
-                  : category.type === "meet"
-                  ? "เข้าห้องประชุม"
-                  : "ทดลองโค้ด"}
+                    ? "ทำแบบฝึกหัด"
+                    : category.type === "certificate"
+                      ? "รับใบประกาศ"
+                      : category.type === "meet"
+                        ? "เข้าห้องประชุม"
+                        : "ทดลองโค้ด"}
               </button>
             </div>
           ))}
@@ -130,10 +129,10 @@ const CategoriesPage = () => {
 
       {/* Pass props to the Leaderboard Component */}
       {showLeaderboard && (
-        <Leaderboard 
-          leaderboardByExercise={leaderboardByExercise} 
-          selectedExercise={selectedExercise} 
-          setShowLeaderboard={setShowLeaderboard} 
+        <Leaderboard
+          leaderboardByExercise={leaderboardByExercise}
+          selectedExercise={selectedExercise}
+          setShowLeaderboard={setShowLeaderboard}
         />
       )}
 
@@ -149,7 +148,7 @@ const CategoriesPage = () => {
             <a href="/contact" className="hover:underline text-gray-400">
               ติดต่อ
             </a>{" "}
-            |{/* Privacy Policy Modal Button */}
+            | {/* Privacy Policy Modal Button */}
             <button
               className="hover:underline text-gray-400"
               onClick={() => setIsOpen(true)}
@@ -251,6 +250,6 @@ const CategoriesPage = () => {
       )}
     </div>
   );
-};
+};    
 
 export default CategoriesPage;

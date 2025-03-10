@@ -122,13 +122,13 @@ const ExercisesPage = () => {
         <div className="flex gap-4">
           <button
             onClick={handleBackToSelection}
-            className="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-300"
+            className="px-6 py-2 bg-[#F4A261] text-white rounded-lg hover:bg-yellow-600 transition duration-300"
           >
             เลือกแบบฝึกหัดใหม่
           </button>
           <button
             onClick={() => navigate(-1)}
-            className="px-5 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
+            className="px-5 py-2 bg-[#EF4444] text-white rounded-lg hover:bg-red-600 transition duration-300"
           >
             ย้อนกลับ
           </button>
