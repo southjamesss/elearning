@@ -20,7 +20,10 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: [
+    'http://localhost:5173',
+    'https://elearning-n537q4zk1-southjamesss-projects.vercel.app'  // << เพิ่ม domain Vercel ของพี่
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
 
