@@ -14,7 +14,7 @@ const FormData = require("form-data")
 const upload = multer({ dest: 'uploads/' });  // กำหนดที่เก็บไฟล์ที่อัพโหลด
 const app = express();
 const prisma = new PrismaClient();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
